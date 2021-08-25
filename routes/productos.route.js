@@ -53,64 +53,77 @@ router.get("/listar/:id", (req, res) => {
       });
 
   } catch (err) {
+
     res.status(404).json({ err });
   }
 });
-/*
-router.post("/guardar", (req, res) => {
-    let title = req.query.title
-    let thumbnail = req.query.thumbnail
-    let price = parseInt(req.query.price)
-          
-        try{
-            productos.push(new Producto(title, price, thumbnail))
-            res.status(200).json(productos[productos.length -1])
-            
-        }catch(err) {
-            res.status(404).json(err)
-        }
-})
-*/
 
 
 router.put("/actualizar/:id", (req, res) => {
 
     try {
+         fs.readFile('productos.txt','utf-8',(err, data)=>{
+        data = data.toString('utf-8')
+        data = JSON.parse(data)
+
         let id = parseInt(req.params.id)
-        productos[id-1] = {
-            "id": parseInt(id),
+        data[id - 1] = {
+            "id": parseInt(id-1),
             "title": req.query.title,
             "price": parseInt(req.query.price),
             "thumbnail": req.query.thumbnail
         }
-        res.json(productos[id-1])
+        res.status(200).json(data[id - 1])
+
+        fs.promises
+                 .writeFile('productos.txt',JSON.stringify(data, null, '\t'))
+                 .then(_=>{
+                     console.log("actualizado con exito");
+                 })
+      });
     } catch(err){
         throw new Error(err)
     }
 })
 
 router.delete("/borrar/:id", (req, res) => {
-
-    try {
-
-        let id = parseInt(req.params.id)
-
-            if(id-1 < productos.length){
-                res.status(200).json(productos[id-1])
-
-                var i = productos.indexOf(productos[id-1] );
-                if(i !== -1){
-                    productos.splice( i, 1 );
-                } 
-            } else {
-                res.status(200).json({"msg":"No hay productos"})
-            }
-    
-    }catch(err) {
-        throw new error(err)
-    }
-   
+  try {
+    fs.readFile('productos.txt','utf-8',(err, data)=>{
+   data = data.toString('utf-8')
+   data = JSON.parse(data)
+   let id = parseInt(req.params.id)
+   res.json(data[id - 1])
+   data.splice( id-1, 1 );
+   fs.promises
+            .writeFile('productos.txt',JSON.stringify(data, null, '\t'))
+            .then(_=>{
+                console.log("Eliminado con exito");
+            })
+ });
+} catch(err){
+   throw new Error(err)
+}
 })
+    // try {
+
+    //     let id = parseInt(req.params.id)
+
+    //         if(id-1 < productos.length){
+    //             res.status(200).json(productos[id-1])
+
+    //             var i = productos.indexOf(productos[id-1] );
+    //             if(i !== -1){
+    //                 productos.splice( i, 1 );
+    //             } 
+    //         } else {
+    //             res.status(200).json({"msg":"No hay productos"})
+    //         }
+    
+    // }catch(err) {
+    //     throw new error(err)
+    // }
+   
+
 
 
 router.use(express.json()); 
