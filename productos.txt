@@ -1,0 +1,14 @@
+[
+	{
+		"id": 0,
+		"title": "wsfas",
+		"price": 3,
+		"thumbnail": "images\\be1c595c5d1ab6ee7e6a13423d9d8f6f.png"
+	},
+	{
+		"id": 1,
+		"title": "sfasfs",
+		"price": null,
+		"thumbnail": "images\\thames.jpg"
+	}
+]

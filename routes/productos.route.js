@@ -1,30 +1,38 @@
 const express = require('express')
 const router = express.Router()
+const fs = require('fs')
 
-let productos = []
+// let productos = []
 
-class Producto {
-    constructor (title, price, thumbnail) {
-        this.id = productos.length+1
-        this.title = title
-        this.price = price
-        this.thumbnail = thumbnail
-    }
-}
+// class Producto {
+//     constructor (title, price, thumbnail) {
+//         this.id = productos.length+1
+//         this.title = title
+//         this.price = price
+//         this.thumbnail = thumbnail
+//     }
+// }
 
 
-productos.push(new Producto ("Computadora", 90000, "http://placehold.it/300x300"))
-productos.push(new Producto ("Impresora", 65000, "http://placehold.it/300x300"))
-productos.push(new Producto ("Teclado", 2000, "http://placehold.it/300x300"))
+// productos.push(new Producto ("Computadora", 90000, "http://placehold.it/300x300"))
+// productos.push(new Producto ("Impresora", 65000, "http://placehold.it/300x300"))
+// productos.push(new Producto ("Teclado", 2000, "http://placehold.it/300x300"))
 
 
 router.get("/listar", (req, res) => {
-  try {
-    if (productos.length > 0) {
-      res.status(200).json(productos);
-    } else {
+
+  
+try {
+  fs.readFile('productos.txt','utf-8',(err, data)=>{
+    if(err){
       res.status(404).json({ error: "no hay productos cargados" });
+    }else{
+      data = data.toString('utf-8')
+      data = JSON.parse(data)
+      res.status(200).json(data);
     }
+    });
+
   } catch (err) {
     res.status(404).json({ err });
   }
@@ -33,16 +41,22 @@ router.get("/listar", (req, res) => {
 
 router.get("/listar/:id", (req, res) => {
   try {
-    if (req.params.id <= productos.length) {
-      res.status(200).json(productos[req.params.id - 1]);
-    } else {
-      res.status(404).json({ error: "producto no encontrado" });
-    }
+    fs.readFile('productos.txt','utf-8',(err, data)=>{
+      data = data.toString('utf-8')
+      data = JSON.parse(data)
+
+      if(req.params.id <= data.length){
+        res.status(200).json(data[req.params.id - 1]);
+      }else{
+        res.status(404).json({ error: "producto no encontrado" });
+      }
+      });
+
   } catch (err) {
     res.status(404).json({ err });
   }
 });
-
+/*
 router.post("/guardar", (req, res) => {
     let title = req.query.title
     let thumbnail = req.query.thumbnail
@@ -56,6 +70,7 @@ router.post("/guardar", (req, res) => {
             res.status(404).json(err)
         }
 })
+*/
 
 
 router.put("/actualizar/:id", (req, res) => {
@@ -99,11 +114,5 @@ router.delete("/borrar/:id", (req, res) => {
 
 
 router.use(express.json()); 
-
-
 router.use(express.urlencoded({ extended: true })); 
-
-
-
-
 module.exports = router;

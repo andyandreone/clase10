@@ -1,10 +1,11 @@
 const express = require('express')
 const products = require("./routes/productos.route")
 var multer = require('multer');
+const fs = require('fs');
 
 let storage = multer.diskStorage ({
     destination: function (req, file, callback){
-        callback(null, "uploads")
+        callback(null, "images")
     },
     filename:function(req, file, callback){
         callback(null, file.originalname)
@@ -25,6 +26,8 @@ class Producto {
 }
 
 
+
+
 const app = express();
 app.listen(8080, ()=>{
     console.log('Escuchando en el puerto 8080');
@@ -34,7 +37,7 @@ app.use('/api/productos', products)
 app.use(express.static('public'))
 
 
-app.post("/upload", upload.single("myFile"),(req, res, next) => {
+app.post("/guardar", upload.single("myFile"),(req, res, next) => {
     let title = req.body.title
     let price = parseInt(req.body.price)
     let thumbnail = req.file.path
@@ -44,7 +47,25 @@ app.post("/upload", upload.single("myFile"),(req, res, next) => {
                 error.httpStatusCode = 400
                 return next(error)
             }
-            productos.push(new Producto(title, price, thumbnail))
-            res.send(productos[productos.length -1])
+            producto = new Producto(title, price, thumbnail)
+            
+            
+        if(fs.existsSync('productos.txt')){
+            
+            fs.promises.readFile('productos.txt').then(data =>{
+                const json = JSON.parse(data.toString('utf-8'));
+                 json.push({...producto, id: json.length});
+                 fs.promises
+                 .writeFile('productos.txt',JSON.stringify(json, null, '\t'))
+                 .then(_=>{
+                     console.log("agregado con exito");
+                 })
+             }).catch(err=>{
+                console.log(err)
+             })
+            }else{
+                fs.promises.writeFile(('productos.txt'), JSON.stringify([{...producto, id:0}]))
+             }
+            res.send(producto)
 })
 
