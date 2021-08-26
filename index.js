@@ -2,6 +2,7 @@ const express = require('express')
 const products = require("./routes/productos.route")
 var multer = require('multer');
 const fs = require('fs');
+const handlebars = require('express-handlebars')
 
 let storage = multer.diskStorage ({
     destination: function (req, file, callback){
@@ -24,9 +25,6 @@ class Producto {
         this.thumbnail = thumbnail
     }
 }
-
-
-
 
 const app = express();
 app.listen(8080, ()=>{
@@ -51,7 +49,6 @@ app.post("/guardar", upload.single("myFile"),(req, res, next) => {
             
             
         if(fs.existsSync('productos.txt')){
-            
             fs.promises.readFile('productos.txt').then(data =>{
                 const json = JSON.parse(data.toString('utf-8'));
                  json.push({...producto, id: json.length});
@@ -66,6 +63,34 @@ app.post("/guardar", upload.single("myFile"),(req, res, next) => {
             }else{
                 fs.promises.writeFile(('productos.txt'), JSON.stringify([{...producto, id:0}]))
              }
-            res.send(producto)
+             res.redirect('/');
 })
 
+app.engine(
+    "hbs",
+    handlebars({
+        extname:".hbs",
+        defaultLayout:'index.hbs',
+        layoutsDir: __dirname + "/views/layouts",
+    })
+)
+
+app.set('view engine', 'hbs');
+app.set('views','./views');
+app.use(express.static('public'));
+
+app.get('/productos/vista',(req,res)=>{
+    fs.promises.readFile('productos.txt').then(data =>{
+        const products = {
+            items: [{}]
+        }
+
+        const json = JSON.parse(data.toString('utf-8'));
+        products.items = json
+        console.log(products)
+        res.render('main',products)
+     }).catch(err=>{
+        console.log(err)
+     })
+    
+})
